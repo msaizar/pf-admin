@@ -29,6 +29,7 @@ def password(username):
     password = __get_pass()
     try: 
         c.update_password(username, password)
+        print >> sys.stdout, 'Password updated.'
         raise SystemExit
     except UserNotFoundError:
         print >> sys.stderr, '%s: User does not exist.' % username
@@ -41,6 +42,7 @@ def add_user(username):
     password = __get_pass()
     try:
         c.add_user(username,password)
+        print >> sys.stdout, 'User added.'
         raise SystemExit
     except DomainNotFoundError:
         print >> sys.stderr, '%s: Domain does not exist.' % username
@@ -49,6 +51,7 @@ def add_user(username):
             user, domain = parse_email(username)
             c.add_domain(domain)
             c.add_user(username,password)
+            print >> sys.stdout, 'User and domain added.'
             raise SystemExit
         else:
             print >> sys.stdout, 'Aborted.'
@@ -65,6 +68,7 @@ def add_user(username):
 def delete_user(username):
     try:
         c.delete_user(username)
+        print >> sys.stdout, 'User deleted.'
         raise SystemExit
     except UserNotFoundError:
         print >> sys.stderr, '%s: User does not exist.' % username
@@ -85,6 +89,7 @@ def add_alias(source, destination=None):
         destination = __get_alias()
     try:
         c.add_alias(source, destination)
+        print >> sys.stdout, 'Alias added.'
         raise SystemExit
     except AliasFoundError:
         print >> sys.stderr, '%s -> %s: Alias already exists.' % \
@@ -99,6 +104,7 @@ def del_alias(source, destination=None):
         destination = __get_alias()
     try:
         c.delete_alias(source, destination)
+        print >> sys.stdout, 'Alias deleted.'
         raise SystemExit
     except AliasNotFoundError:
         print >> sys.stderr, '%s -> %s: Alias does not exist.' % \
@@ -122,6 +128,7 @@ def list_aliases(source):
 def add_domain(server):
     try: 
         c.add_domain(server)
+        print >> sys.stdout, 'Domain added.'
         raise SystemExit
     except DomainFoundError:
         print >> sys.stderr, '%s: Domain already exists.' % server
@@ -141,6 +148,7 @@ def list_users(domain):
 def delete_domain(server):
     try:
         c.delete_domain(server)
+        print >> sys.stdout, 'Domain deleted.'
         raise SystemExit
     except DomainNotFoundError:
         print >> sys.stderr, '%s: Domain does not exist.' % server
