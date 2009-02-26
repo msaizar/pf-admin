@@ -2,6 +2,7 @@ from string import split
 from pfAdmin.error import InvalidUsernameFormatError
 from pfAdmin.error import ConfigNotFoundError
 import ConfigParser
+import MySQLdb
 from os.path import lexists
 
 class Config:
@@ -94,6 +95,14 @@ class Config:
     def __setattr__(self, attr, value):
         """ Delegate access to implementation """
         return setattr(self.__instance, attr, value)
+
+def connect_db(config):
+    db = MySQLdb.connect(user=config['username'],
+    passwd=config['password'],
+    host=config['hostname'],
+    db=config['database'],
+    unix_socket=config['socket'])
+    return db
 
 def parse_email(email):
     temp = split(email,'@')

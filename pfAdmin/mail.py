@@ -1,13 +1,15 @@
 from pfAdmin.error import DomainFoundError, DomainNotFoundError
 from pfAdmin.error import UserNotFoundError, UserFoundError, CouldNotQueryError
 from pfAdmin.error import AliasFoundError, AliasNotFoundError
-from pfAdmin.utils import Config, parse_email
-from pfAdmin.connection import AbstractDB
+from pfAdmin.utils import Config, parse_email, connect_db
 
 
 def encrypt_password(password):
-    
-    db = AbstractDB()
+    Co = Config()
+    if Co.is_parsed() == False:
+        Co.parse_config()
+    config = Co.get_config()
+    db = connect_db(config)
     c = db.cursor()
     str_query = """SELECT md5(%s)"""
     c.execute(str_query, (password, ))
@@ -28,7 +30,8 @@ class Mail(object):
         if Co.is_parsed() == False:
             Co.parse_config()
         self.config = Co.get_config()
-        self.db = AbstractDB()
+        self.db = connect_db(self.config)
+        
 
     def list_domains(self):
         
@@ -136,7 +139,7 @@ class Domain(object):
         if Co.is_parsed() == False:
             Co.parse_config()
         self.config = Co.get_config()
-        self.db = AbstractDB()
+        self.db = connect_db(self.config)
         
     
     def list_users(self):
@@ -212,7 +215,7 @@ class Alias(object):
             if Co.is_parsed() == False:
                 Co.parse_config()
             self.config = Co.get_config()
-            self.db = AbstractDB()
+            self.db = connect_db(self.config)
         
     def list_destination(self):
         
@@ -299,7 +302,7 @@ class User(object):
         if Co.is_parsed() == False:
             Co.parse_config()
         self.config = Co.get_config()
-        self.db = AbstractDB()
+        self.db = connect_db(self.config)
         self.user, self.domain = parse_email(username)
         self.password = password
 
