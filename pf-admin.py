@@ -2,7 +2,7 @@
 import sys
 from pfAdmin.mail import Mail
 from optparse import OptionParser
-from pfAdmin.utils import parse_email
+from pfAdmin.utils import parse_email, get_config
 from pfAdmin.error import UserFoundError, UserNotFoundError
 from pfAdmin.error import DomainFoundError, DomainNotFoundError
 from pfAdmin.error import InvalidUsernameFormatError
@@ -196,8 +196,9 @@ def main():
     global c
     if hasattr(options,'filepath') and options.filepath != None:
         filepath = options.filepath
-    try: 
-        c = Mail(filepath)
+    try:
+        config = get_config(filepath) 
+        c = Mail(config)
     except ConfigNotFoundError:
         print >> sys.stderr, '%s: Configuration file not found.' % filepath
         raise SystemExit, 1

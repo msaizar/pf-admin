@@ -1,35 +1,15 @@
 from pfAdmin.error import DomainFoundError, DomainNotFoundError
 from pfAdmin.error import UserNotFoundError, UserFoundError, CouldNotQueryError
 from pfAdmin.error import AliasFoundError, AliasNotFoundError
-from pfAdmin.utils import Config, parse_email, connect_db
-
-
-def encrypt_password(password):
-    Co = Config()
-    if Co.is_parsed() == False:
-        Co.parse_config()
-    config = Co.get_config()
-    db = connect_db(config)
-    c = db.cursor()
-    str_query = """SELECT md5(%s)"""
-    c.execute(str_query, (password, ))
-    new_passes = c.fetchone()
-    c.close()
-    return new_passes[0]
-
+from pfAdmin.utils import encrypt_password, parse_email, connect_db
 
 
 class Mail(object):
     """docstring for Mail"""
     
-    def __init__(self, path=''):
+    def __init__(self, config):
         
-        self.__name__ = 'Mail'
-        Co = Config()
-        Co.set_path(path)
-        if Co.is_parsed() == False:
-            Co.parse_config()
-        self.config = Co.get_config()
+        self.config = config
         self.db = connect_db(self.config)
         
 
@@ -47,7 +27,7 @@ class Mail(object):
 
     def add_domain(self, domain_name):
         
-        dom = Domain(domain_name)
+        dom = Domain(self.config, domain_name)
         if dom.is_created():
             raise DomainFoundError(domain_name)
         else:
@@ -55,7 +35,7 @@ class Mail(object):
     
     def delete_domain(self, domain_name):
         
-        dom = Domain(domain_name)
+        dom = Domain(self.config, domain_name)
         if dom.is_created():
             dom.delete()
         else:
@@ -63,29 +43,29 @@ class Mail(object):
             
     def list_aliases(self, source):
         
-        ala = Alias(source)
+        ala = Alias(self.config, source)
         if ala.list_destination():
             return ala.list_destination()
         else:
             raise AliasNotFoundError(source)
         
     def add_alias(self, source, destination):
-        usu = User(source, '')
+        usu = User(self.config, source, '')
         if not usu.is_created():
             raise UserNotFoundError(source)
         else:
-            ala = Alias(source, destination)
+            ala = Alias(self.config, source, destination)
             if not ala.is_created():            
                 ala.create()
             else:
                 raise AliasFoundError(source, destination)
         
     def delete_alias(self, source, destination):
-        usu = User(source, '')
+        usu = User(self.config, source, '')
         if not usu.is_created():
             raise UserNotFoundError(source)
         else:
-            ala = Alias(source, destination)
+            ala = Alias(self.config, source, destination)
             if not ala.is_created():
                 raise AliasNotFoundError(source, destination)
             else:
@@ -93,7 +73,7 @@ class Mail(object):
                
     def list_users(self, domain):
         
-        dom = Domain(domain)
+        dom = Domain(self.config, domain)
         if not dom.is_created():
             raise DomainNotFoundError(domain)
         else:
@@ -102,11 +82,11 @@ class Mail(object):
     def add_user(self, username, password):
         
         user, domain = parse_email(username)
-        dom = Domain(domain)
+        dom = Domain(self.config, domain)
         if not dom.is_created():
             raise DomainNotFoundError(domain)
         else:
-            usu = User(username, password)
+            usu = User(self.config, username, password)
             if not usu.is_created():
                 usu.create()
             else:
@@ -115,7 +95,7 @@ class Mail(object):
     def delete_user(self, username):
         
         user, domain = parse_email(username)
-        usu = User(username)
+        usu = User(self.config, username)
         if not usu.is_created():
             raise UserNotFoundError(username)
         else:
@@ -123,7 +103,7 @@ class Mail(object):
                 
     def update_password(self, username, password):
        
-        usu = User(username)
+        usu = User(self.config, username)
         if not usu.is_created():
             raise UserNotFoundError(username)
         else:
@@ -132,13 +112,10 @@ class Mail(object):
 class Domain(object):
 
         
-    def __init__(self, domain_name):
+    def __init__(self, config, domain_name):
         
         self.domain_name = domain_name
-        Co = Config()
-        if Co.is_parsed() == False:
-            Co.parse_config()
-        self.config = Co.get_config()
+        self.config = config
         self.db = connect_db(self.config)
         
     
@@ -207,14 +184,11 @@ class Domain(object):
 
 class Alias(object):
     
-    def __init__(self, source, destination=''):
+    def __init__(self, config, source, destination=''):
             
             self.destination = destination
             self.name, self.domain = parse_email(source)
-            Co = Config()
-            if Co.is_parsed() == False:
-                Co.parse_config()
-            self.config = Co.get_config()
+            self.config = config
             self.db = connect_db(self.config)
         
     def list_destination(self):
@@ -295,13 +269,9 @@ class User(object):
     """docstring for User"""
 
         
-    def __init__(self, username, password=''):
+    def __init__(self, config, username, password=''):
         
-        self.__name__ = username
-        Co = Config()
-        if Co.is_parsed() == False:
-            Co.parse_config()
-        self.config = Co.get_config()
+        self.config = config
         self.db = connect_db(self.config)
         self.user, self.domain = parse_email(username)
         self.password = password
@@ -324,7 +294,7 @@ class User(object):
 
     def create(self):
         
-        enc_pass = encrypt_password(self.password)
+        enc_pass = encrypt_password(self.config, self.password)
         c = self.db.cursor()
         str_query = """INSERT INTO %s""" % self.config['users'] + \
         """ (%s, %s, %s)""" % (self.config['users.domain_id'], \
@@ -345,7 +315,7 @@ class User(object):
     def update_password(self, new_pass):
         """docstring for update_password"""
 
-        enc_pass = encrypt_password(new_pass)
+        enc_pass = encrypt_password(self.config, new_pass)
         c = self.db.cursor()
         str_query = """UPDATE %s AS vu JOIN %s as vd on vu.%s = vd.%s SET %s \
         = """ % (self.config['users'], self.config['domains'], \
