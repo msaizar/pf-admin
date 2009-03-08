@@ -4,16 +4,12 @@ from pfAdmin.error import ConfigNotFoundError
 import ConfigParser
 import MySQLdb
 from os.path import lexists
+import md5
 
-def encrypt_password(config, password):
+def encrypt_password(password):
 
-    db = connect_db(config)
-    c = db.cursor()
-    str_query = """SELECT md5(%s)"""
-    c.execute(str_query, (password, ))
-    new_passes = c.fetchone()
-    c.close()
-    return new_passes[0]        
+    new_pass = md5.new(password).hexdigest()
+    return new_pass
         
 def get_config(path):
     

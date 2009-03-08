@@ -294,7 +294,7 @@ class User(object):
 
     def create(self):
         
-        enc_pass = encrypt_password(self.config, self.password)
+        enc_pass = encrypt_password(self.password)
         c = self.db.cursor()
         str_query = """INSERT INTO %s""" % self.config['users'] + \
         """ (%s, %s, %s)""" % (self.config['users.domain_id'], \
@@ -315,7 +315,7 @@ class User(object):
     def update_password(self, new_pass):
         """docstring for update_password"""
 
-        enc_pass = encrypt_password(self.config, new_pass)
+        enc_pass = encrypt_password(new_pass)
         c = self.db.cursor()
         str_query = """UPDATE %s AS vu JOIN %s as vd on vu.%s = vd.%s SET %s \
         = """ % (self.config['users'], self.config['domains'], \
@@ -360,15 +360,3 @@ class User(object):
     def get_password(self):
 
         return self.password
-
-
-
-
-def test_main():
-    """docstring for __main__"""
-
-
-    
-
-if __name__ == '__main__':
-    test_main()
