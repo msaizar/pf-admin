@@ -95,9 +95,6 @@ def add_alias(source, destination=None):
         print >> sys.stderr, '%s -> %s: Alias already exists.' % \
         (source, destination)
         raise SystemExit, 1
-    except UserNotFoundError:
-        print >> sys.stderr, '%s: User does not exist.' % source
-        raise SystemExit, 1
 
 def del_alias(source, destination=None):
     if not destination:
@@ -110,14 +107,11 @@ def del_alias(source, destination=None):
         print >> sys.stderr, '%s -> %s: Alias does not exist.' % \
         (source, destination)
         raise SystemExit, 1
-    except UserNotFoundError:
-        print >> sys.stderr, '%s: User does not exist.' % source
-        raise SystemExit, 1
     
 def list_aliases(source):
     try:
         aliases = c.list_aliases(source)
-        print >> sys.stdout, 'Aliases of %s: ' % source
+        print >> sys.stdout, 'Aliases for source %s: ' % source
         for a in aliases:
             print >> sys.stdout, '\t %s' % a
         raise SystemExit
@@ -175,15 +169,15 @@ def main():
                         action="store_true", default=False, 
                         help="list domains")
     parser.add_option("--add-alias", dest="add_alias",
-                        help="create alias for USER@DOMAIN " + 
+                        help="create alias for source USER@DOMAIN " + 
                         "(optionally with -d)", 
                         metavar="USER@DOMAIN")
     parser.add_option("--del-alias", dest="del_alias",
-                        help="delete alias from USER@DOMAIN " + 
+                        help="delete alias for source USER@DOMAIN " + 
                         "(optionally with -d)", 
                         metavar="USER@DOMAIN")
     parser.add_option("--list-aliases", dest="list_alias",
-                        help="list aliases for USER@DOMAIN", 
+                        help="list aliases for source USER@DOMAIN", 
                         metavar="USER@DOMAIN")
     parser.add_option("-d", dest="dest_alias",
                         help="destination for alias",

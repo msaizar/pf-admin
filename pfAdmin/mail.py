@@ -50,27 +50,21 @@ class Mail(object):
             raise AliasNotFoundError(source)
         
     def add_alias(self, source, destination):
-        usu = User(self.config, source, '')
-        if not usu.is_created():
-            raise UserNotFoundError(source)
+        
+        ala = Alias(self.config, source, destination)
+        if not ala.is_created():            
+            ala.create()
         else:
-            ala = Alias(self.config, source, destination)
-            if not ala.is_created():            
-                ala.create()
-            else:
-                raise AliasFoundError(source, destination)
+            raise AliasFoundError(source, destination)
         
     def delete_alias(self, source, destination):
-        usu = User(self.config, source, '')
-        if not usu.is_created():
-            raise UserNotFoundError(source)
+        
+        ala = Alias(self.config, source, destination)
+        if not ala.is_created():
+            raise AliasNotFoundError(source, destination)
         else:
-            ala = Alias(self.config, source, destination)
-            if not ala.is_created():
-                raise AliasNotFoundError(source, destination)
-            else:
-                ala.delete()
-               
+            ala.delete()
+           
     def list_users(self, domain):
         
         dom = Domain(self.config, domain)
